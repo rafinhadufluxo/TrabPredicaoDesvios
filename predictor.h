@@ -27,9 +27,12 @@ extern const char *email;
 
 // The Different Predictor Types
 #define STATIC      0
-#define GSHARE      1
+#define GSHARE1     4
+#define GSHARE2     1
+#define GSHARE3     5
 #define TOURNAMENT  2
 #define CUSTOM      3
+#define BIMODAL     6
 extern const char *bpName[];
 
 // Definitions for 2-bit counters

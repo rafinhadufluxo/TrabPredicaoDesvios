@@ -20,8 +20,7 @@ const char *email       = "rksubram@ucsd.edu";
 //------------------------------------//
 
 // Handy Global for use in output routines
-const char *bpName[4] = { "Static", "Gshare",
-                          "Tournament", "Custom" };
+const char *bpName[6] = { "Static", "Gshare1", "Gshare2", "Gshare3", "Tournament", "Custom" };
 
 int ghistoryBits; // Number of bits used for Global History
 int lhistoryBits; // Number of bits used for Local History
@@ -65,19 +64,19 @@ uint32_t mask_input(uint32_t mask_val, uint32_t input){
 	return (mask_val & input);
 }
 
-void update_if_non_saturate(uint8_t outcome, uint32_t* table, uint32_t history){
+void update_if_non_saturate(uint8_t outcome, uint32_t* table, uint32_t history, int bits){
+
+	
 	if(outcome==NOTTAKEN && table[history]!=0)
 	{
 		table[history]--;
 	}
-	else if(outcome==TAKEN && table[history]!=3)
+	else if(outcome==TAKEN && table[history]!=bits)
 	{
 		table[history]++;
 	}
-//	return table[history];
 }
-// Initialize the predictor
-//
+
 void init_predictor()
 {
 	uint32_t BHT_size, GHT_size;
@@ -87,8 +86,21 @@ void init_predictor()
 	//
 	switch(bpType){
 		case STATIC:
-		case GSHARE:
-			//G-Share
+		case GSHARE1:
+			global_history=0;
+			global_mask=return_mask(ghistoryBits);
+			BHT_size=global_mask+1;
+			global_history_table= (uint32_t*) malloc((BHT_size)*(sizeof(uint32_t)));
+			assign_register(BHT_size,global_history_table,1);
+			return;
+		case GSHARE2:
+			global_history=0;
+			global_mask=return_mask(ghistoryBits);
+			BHT_size=global_mask+1;
+			global_history_table= (uint32_t*) malloc((BHT_size)*(sizeof(uint32_t)));
+			assign_register(BHT_size,global_history_table,1);
+			return;
+		case GSHARE3:
 			global_history=0;
 			global_mask=return_mask(ghistoryBits);
 			BHT_size=global_mask+1;
@@ -117,6 +129,13 @@ void init_predictor()
 			GHT_size=global_mask+1;
 			choice_prediction_table=(uint32_t*) malloc((GHT_size)*(sizeof(uint32_t)));
 			assign_register(GHT_size,choice_prediction_table,2);
+			return;
+		case BIMODAL:
+			global_history=0;
+			global_mask=return_mask(ghistoryBits);
+			BHT_size=global_mask+1;
+			global_history_table= (uint32_t*) malloc((BHT_size)*(sizeof(uint32_t)));
+			assign_register(BHT_size,global_history_table,1);
 			return;
 		case CUSTOM:
 			ghistoryBits=10;
@@ -162,12 +181,38 @@ uint8_t make_prediction(uint32_t pc)
 	switch (bpType) {
 		case STATIC:
 			return TAKEN;
-		case GSHARE:
+		case GSHARE1:
+			gval=mask_input(global_mask, global_history);
+			pcval=mask_input(global_mask, pc);
+			index = gval ^ pcval;
+			prediction= global_history_table[index];
+			if(prediction>=1)
+			{
+				return TAKEN;
+			}
+			else
+			{
+				return NOTTAKEN;
+			}
+		case GSHARE2:
 			gval=mask_input(global_mask, global_history);
 			pcval=mask_input(global_mask, pc);
 			index = gval ^ pcval;
 			prediction= global_history_table[index];
 			if(prediction>=2)
+			{
+				return TAKEN;
+			}
+			else
+			{
+				return NOTTAKEN;
+			}
+		case GSHARE3:
+			gval=mask_input(global_mask, global_history);
+			pcval=mask_input(global_mask, pc);
+			index = gval ^ pcval;
+			prediction= global_history_table[index];
+			if(prediction>=4)
 			{
 				return TAKEN;
 			}
@@ -187,6 +232,19 @@ uint8_t make_prediction(uint32_t pc)
 				return TAKEN;
 			else
 				return NOTTAKEN;
+		case BIMODAL:
+			gval=mask_input(global_mask, global_history);
+			pcval=mask_input(global_mask, pc);
+			index = gval ^ pcval;
+			prediction= global_history_table[index];
+			if(prediction>=2)
+			{
+				return TAKEN;
+			}
+			else
+			{
+				return NOTTAKEN;
+			}
 		case CUSTOM:
 			gval=mask_input(global_mask,global_history);
 			choice_prediction=choice_prediction_table[gval];
@@ -219,12 +277,28 @@ train_predictor(uint32_t pc, uint8_t outcome)
 	uint32_t perceptron_mask,GHR_val,t,threshold;
 	int PT_size,y;
 	switch(bpType) {
-		case GSHARE:
+		case GSHARE1:
 			gval=mask_input(global_mask, global_history);
 			pcval=mask_input(global_mask, pc);
 			index = gval ^ pcval;
 			//prediction= global_history_table[index];
-			update_if_non_saturate(outcome, global_history_table, index);
+			update_if_non_saturate(outcome, global_history_table, index,1);
+			global_history = outcome | (global_history<<1);
+			return;
+		case GSHARE2:
+			gval=mask_input(global_mask, global_history);
+			pcval=mask_input(global_mask, pc);
+			index = gval ^ pcval;
+			//prediction= global_history_table[index];
+			update_if_non_saturate(outcome, global_history_table, index,3);
+			global_history = outcome | (global_history<<1);
+			return;
+		case GSHARE3:
+			gval=mask_input(global_mask, global_history);
+			pcval=mask_input(global_mask, pc);
+			index = gval ^ pcval;
+			//prediction= global_history_table[index];
+			update_if_non_saturate(outcome, global_history_table, index,7);
 			global_history = outcome | (global_history<<1);
 			return;
 		case TOURNAMENT:
@@ -245,11 +319,19 @@ train_predictor(uint32_t pc, uint8_t outcome)
 			{
 				choice_prediction_table[gval]--;
 			}
-			update_if_non_saturate(outcome, local_prediction_table, local_history);
-			update_if_non_saturate(outcome, global_prediction_table, gval);
+			update_if_non_saturate(outcome, local_prediction_table, local_history,3);
+			update_if_non_saturate(outcome, global_prediction_table, gval,3);
 			global_history= (outcome | (global_history<<1) ) & global_mask;
 			local_history_table[pcval]= (outcome| (local_history_table[pcval] << 1)) & local_mask;
 			return;
+		case BIMODAL:
+			gval=mask_input(global_mask, global_history);
+			pcval=mask_input(global_mask, pc);
+			index = gval ^ pcval;
+			//prediction= global_history_table[index];
+			update_if_non_saturate(outcome, global_history_table, index,1);
+			global_history = outcome | (global_history<<1);
+			return;			
 		case CUSTOM:
 			gval= mask_input(global_mask, global_history);
 			choice_prediction=choice_prediction_table[gval];
@@ -268,8 +350,8 @@ train_predictor(uint32_t pc, uint8_t outcome)
 			{
 				choice_prediction_table[gval]--;
 			}
-			update_if_non_saturate(outcome, local_prediction_table, local_history);
-			update_if_non_saturate(outcome, global_prediction_table, gval);
+			update_if_non_saturate(outcome, local_prediction_table, local_history,3);
+			update_if_non_saturate(outcome, global_prediction_table, gval,3);
 			global_history= (outcome | (global_history<<1) ) & global_mask;
 			local_history_table[pcval]= (outcome| (local_history_table[pcval] << 1)) & local_mask;
 			return;

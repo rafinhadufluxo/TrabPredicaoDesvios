@@ -41,12 +41,21 @@ handle_option(char *arg)
 {
   if (!strcmp(arg,"--static")) {
     bpType = STATIC;
-  } else if (!strncmp(arg,"--gshare:",9)) {
-    bpType = GSHARE;
-    sscanf(arg+9,"%d", &ghistoryBits);
+  } else if (!strncmp(arg,"--gshare1:",10)) {
+    bpType = GSHARE1;
+    sscanf(arg+10,"%d", &ghistoryBits);
+  } else if (!strncmp(arg,"--gshare2:",10)) {
+    bpType = GSHARE2;
+    sscanf(arg+10,"%d", &ghistoryBits);
+  } else if (!strncmp(arg,"--gshare3:",10)) {
+    bpType = GSHARE3;
+    sscanf(arg+10,"%d", &ghistoryBits);
   } else if (!strncmp(arg,"--tournament:",13)) {
     bpType = TOURNAMENT;
     sscanf(arg+13,"%d:%d:%d", &ghistoryBits, &lhistoryBits, &pcIndexBits);
+  } else if (!strncmp(arg,"--bimodal:",10)) {
+    bpType = BIMODAL;
+    sscanf(arg+10,"%d", &ghistoryBits);
   } else if (!strcmp(arg,"--custom")) {
     bpType = CUSTOM;
   } else if (!strcmp(arg,"--verbose")) {
@@ -80,6 +89,7 @@ read_branch(uint32_t *pc, uint8_t *outcome)
 int
 main(int argc, char *argv[])
 {
+  exit;
   // Set defaults
   stream = stdin;
   bpType = STATIC;
@@ -101,7 +111,7 @@ main(int argc, char *argv[])
       stream = fopen(argv[i], "r");
     }
   }
-
+  
   // Initialize the predictor
   init_predictor();
 
@@ -116,16 +126,16 @@ main(int argc, char *argv[])
 
     // Make a prediction and compare with actual outcome
     uint8_t prediction = make_prediction(pc);
+
     if (prediction != outcome) {
       mispredictions++;
     }
     if (verbose != 0) {
       printf ("%d\n", prediction);
     }
-
-    // Train the predictor
     train_predictor(pc, outcome);
   }
+
 
   // Print out the mispredict statistics
   printf("Branches:        %10d\n", num_branches);
