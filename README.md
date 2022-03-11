@@ -14,9 +14,12 @@ Develop deviation prediction table for:
 Using [this](https://github.com/rksubram/branch-prediction) codebase.
 
 ## How to compile
-- make clean
-- make all
-- ./predictor <type>:<bits> < <trace file> (ex: ./predictor gshare2:5 < fp_2)
+```
+make clean
+make all
+./predictor <type>:<bits> < <trace file>
+```
+exemple: ./predictor gshare2:5 < fp_2
 
 ## How to contribute
 
