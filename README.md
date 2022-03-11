@@ -1,6 +1,7 @@
-## Deviation Prediction Table
+# Deviation Prediction Table
 
-**Objective:** Develop deviation prediction table for:
+## Objective 
+Develop deviation prediction table for:
 1. Bimodal prediction
 2. 1 bit predictor
 3. GSHARE w/ 1 bit predictor
@@ -11,6 +12,11 @@
 8. GSELECT w/ 3 bit predictor
 
 Using [this](https://github.com/rksubram/branch-prediction) codebase.
+
+## How to compile
+- make clean
+- make all
+- ./predictor <type>:<bits> < <trace file> (ex: ./predictor gshare2:5 < fp_2)
 
 ## How to contribute
 
