@@ -30,6 +30,7 @@ extern const char *email;
 #define GSHARE1     4
 #define GSHARE2     1
 #define GSHARE3     5
+#define GSELECT1    7
 #define TOURNAMENT  2
 #define CUSTOM      3
 #define BIMODAL     6

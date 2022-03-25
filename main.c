@@ -50,6 +50,9 @@ handle_option(char *arg)
   } else if (!strncmp(arg,"--gshare3:",10)) {
     bpType = GSHARE3;
     sscanf(arg+10,"%d", &ghistoryBits);
+  } else if (!strncmp(arg,"--gselect1:",11)) {
+    bpType = GSELECT1;
+    sscanf(arg+11,"%d", &ghistoryBits);
   } else if (!strncmp(arg,"--tournament:",13)) {
     bpType = TOURNAMENT;
     sscanf(arg+13,"%d:%d:%d", &ghistoryBits, &lhistoryBits, &pcIndexBits);

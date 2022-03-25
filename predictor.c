@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include "predictor.h"
 #include <math.h>
+#include <string.h>
+
 //
 // TODO:Student Information
 //
@@ -20,7 +22,7 @@ const char *email       = "rksubram@ucsd.edu";
 //------------------------------------//
 
 // Handy Global for use in output routines
-const char *bpName[6] = { "Static", "Gshare1", "Gshare2", "Gshare3", "Tournament", "Custom" };
+const char *bpName[7] = { "Static", "Gshare1", "Gshare2", "Gshare3", "Tournament", "Custom", "Gselect1"};
 
 int ghistoryBits; // Number of bits used for Global History
 int lhistoryBits; // Number of bits used for Local History
@@ -64,6 +66,20 @@ uint32_t mask_input(uint32_t mask_val, uint32_t input){
 	return (mask_val & input);
 }
 
+uint32_t concat_input(int leftValue, int rightValue){
+	char s1[50];
+    char s2[50];
+
+ 	sprintf(s1, "%d", leftValue);
+    sprintf(s2, "%d", rightValue);
+ 
+    // Concatenate both strings
+    strcat(s1, s2);
+
+	return atoi(s1);
+}
+
+
 void update_if_non_saturate(uint8_t outcome, uint32_t* table, uint32_t history, int bits){
 
 	
@@ -101,6 +117,13 @@ void init_predictor()
 			assign_register(BHT_size,global_history_table,1);
 			return;
 		case GSHARE3:
+			global_history=0;
+			global_mask=return_mask(ghistoryBits);
+			BHT_size=global_mask+1;
+			global_history_table= (uint32_t*) malloc((BHT_size)*(sizeof(uint32_t)));
+			assign_register(BHT_size,global_history_table,1);
+			return;
+		case GSELECT1:
 			global_history=0;
 			global_mask=return_mask(ghistoryBits);
 			BHT_size=global_mask+1;
@@ -185,6 +208,7 @@ uint8_t make_prediction(uint32_t pc)
 			gval=mask_input(global_mask, global_history);
 			pcval=mask_input(global_mask, pc);
 			index = gval ^ pcval;
+
 			prediction= global_history_table[index];
 			if(prediction>=1)
 			{
@@ -213,6 +237,20 @@ uint8_t make_prediction(uint32_t pc)
 			index = gval ^ pcval;
 			prediction= global_history_table[index];
 			if(prediction>=4)
+			{
+				return TAKEN;
+			}
+			else
+			{
+				return NOTTAKEN;
+			}
+		case GSELECT1:
+			gval=mask_input(global_mask, global_history);
+			pcval=mask_input(global_mask, pc);
+			index = concat_input(gval, pcval);
+
+			prediction= global_history_table[index];
+			if(prediction>=1)
 			{
 				return TAKEN;
 			}
@@ -299,6 +337,14 @@ train_predictor(uint32_t pc, uint8_t outcome)
 			index = gval ^ pcval;
 			//prediction= global_history_table[index];
 			update_if_non_saturate(outcome, global_history_table, index,7);
+			global_history = outcome | (global_history<<1);
+			return;
+		case GSELECT1:
+			gval=mask_input(global_mask, global_history);
+			pcval=mask_input(global_mask, pc);
+			index = concat_input(gval, pcval);
+			//prediction= global_history_table[index];
+			update_if_non_saturate(outcome, global_history_table, index,1);
 			global_history = outcome | (global_history<<1);
 			return;
 		case TOURNAMENT:
