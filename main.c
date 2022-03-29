@@ -53,6 +53,9 @@ handle_option(char *arg)
   } else if (!strncmp(arg,"--gselect1:",11)) {
     bpType = GSELECT1;
     sscanf(arg+11,"%d", &ghistoryBits);
+  } else if (!strncmp(arg,"--gselect2:",11)) {
+    bpType = GSELECT2;
+    sscanf(arg+11,"%d", &ghistoryBits);
   } else if (!strncmp(arg,"--tournament:",13)) {
     bpType = TOURNAMENT;
     sscanf(arg+13,"%d:%d:%d", &ghistoryBits, &lhistoryBits, &pcIndexBits);
@@ -92,6 +95,13 @@ read_branch(uint32_t *pc, uint8_t *outcome)
 int
 main(int argc, char *argv[])
 {
+  
+  int value;
+
+  //value = concat_input_with_n(5, 7, 4);
+  //printf("\nconcatenado: %d", value);
+  //getchar();
+  
   exit;
   // Set defaults
   stream = stdin;
