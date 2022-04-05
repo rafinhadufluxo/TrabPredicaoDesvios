@@ -67,7 +67,7 @@ uint32_t mask_input(uint32_t mask_val, uint32_t input){
 }
 
 uint32_t concat_input(int leftValue, int rightValue){
-	char s1[50];
+	char s1[100];
     char s2[50];
 
  	sprintf(s1, "%d", leftValue);
@@ -126,7 +126,7 @@ void init_predictor()
 		case GSELECT1:
 			global_history=0;
 			global_mask=return_mask(ghistoryBits);
-			BHT_size=global_mask+1;
+			BHT_size=(global_mask+1)*2;
 			global_history_table= (uint32_t*) malloc((BHT_size)*(sizeof(uint32_t)));
 			assign_register(BHT_size,global_history_table,1);
 			return;
@@ -248,6 +248,7 @@ uint8_t make_prediction(uint32_t pc)
 			gval=mask_input(global_mask, global_history);
 			pcval=mask_input(global_mask, pc);
 			index = concat_input(gval, pcval);
+
 
 			prediction= global_history_table[index];
 			if(prediction>=1)
