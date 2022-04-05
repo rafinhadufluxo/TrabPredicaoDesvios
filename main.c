@@ -2,8 +2,10 @@
 //  CSE 240a Branch Lab                                   //
 //                                                        //
 //  Students need to implement various Branch Predictors  //
-//========================================================//
-
+//========================================================// 
+//10101 10111
+//01111
+//00101 0111
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,6 +55,9 @@ handle_option(char *arg)
   } else if (!strncmp(arg,"--gselect1:",11)) {
     bpType = GSELECT1;
     sscanf(arg+11,"%d", &ghistoryBits);
+  } else if (!strncmp(arg,"--gselect2:",11)) {
+    bpType = GSELECT2;
+    sscanf(arg+11,"%d", &ghistoryBits);
   } else if (!strncmp(arg,"--tournament:",13)) {
     bpType = TOURNAMENT;
     sscanf(arg+13,"%d:%d:%d", &ghistoryBits, &lhistoryBits, &pcIndexBits);
@@ -92,8 +97,15 @@ read_branch(uint32_t *pc, uint8_t *outcome)
 int
 main(int argc, char *argv[])
 {
-  exit;
-  // Set defaults
+  
+  // int value;
+
+  // value = concat_input(21, 23, 3);
+  // printf("\nconcatenado: %d", value);
+  // getchar();
+  
+  // exit;
+  // // Set defaults
   stream = stdin;
   bpType = STATIC;
   verbose = 0;

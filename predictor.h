@@ -31,6 +31,7 @@ extern const char *email;
 #define GSHARE2     1
 #define GSHARE3     5
 #define GSELECT1    7
+#define GSELECT2    8
 #define TOURNAMENT  2
 #define CUSTOM      3
 #define BIMODAL     6
@@ -71,4 +72,6 @@ uint8_t make_prediction(uint32_t pc);
 //
 void train_predictor(uint32_t pc, uint8_t outcome);
 
+
+uint32_t concat_input(int leftValue, int rightValue, int n);
 #endif

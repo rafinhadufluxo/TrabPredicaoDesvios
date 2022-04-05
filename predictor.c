@@ -22,7 +22,7 @@ const char *email       = "rksubram@ucsd.edu";
 //------------------------------------//
 
 // Handy Global for use in output routines
-const char *bpName[7] = { "Static", "Gshare1", "Gshare2", "Gshare3", "Tournament", "Custom", "Gselect1"};
+const char *bpName[8] = { "Static", "Gshare1", "Gshare2", "Gshare3", "Tournament", "Custom", "Gselect1", "Gselect2"};
 
 int ghistoryBits; // Number of bits used for Global History
 int lhistoryBits; // Number of bits used for Local History
@@ -66,17 +66,29 @@ uint32_t mask_input(uint32_t mask_val, uint32_t input){
 	return (mask_val & input);
 }
 
-uint32_t concat_input(int leftValue, int rightValue){
+uint32_t concat_input(int leftValue, int rightValue, int n){
+
 	char s1[50];
     char s2[50];
+	char s3[50];
+	int x, aux, aux2, total = 0;
 
- 	sprintf(s1, "%d", leftValue);
+	sprintf(s1, "%d", leftValue);
     sprintf(s2, "%d", rightValue);
- 
-    // Concatenate both strings
-    strcat(s1, s2);
+	sprintf(s3, "%d", 0);
+	aux = 1;
+	for(x = 0; x < n; x++){
+		total += (aux << x);
+	}
 
-	return atoi(s1);
+	// printf("\nTotal = %d", total);
+	aux = leftValue & total;
+	aux2 = rightValue & total;
+	aux = ((aux << n) | aux2);
+
+
+	return aux;
+
 }
 
 
@@ -124,6 +136,13 @@ void init_predictor()
 			assign_register(BHT_size,global_history_table,1);
 			return;
 		case GSELECT1:
+			global_history=0;
+			global_mask=return_mask(ghistoryBits);
+			BHT_size=global_mask+1;
+			global_history_table= (uint32_t*) malloc((BHT_size)*(sizeof(uint32_t)));
+			assign_register(BHT_size,global_history_table,1);
+			return;
+		case GSELECT2:
 			global_history=0;
 			global_mask=return_mask(ghistoryBits);
 			BHT_size=global_mask+1;
@@ -247,10 +266,24 @@ uint8_t make_prediction(uint32_t pc)
 		case GSELECT1:
 			gval=mask_input(global_mask, global_history);
 			pcval=mask_input(global_mask, pc);
-			index = concat_input(gval, pcval);
+			index = concat_input(gval, pcval, ghistoryBits);
 
 			prediction= global_history_table[index];
 			if(prediction>=1)
+			{
+				return TAKEN;
+			}
+			else
+			{
+				return NOTTAKEN;
+			}
+		case GSELECT2:
+			gval=mask_input(global_mask, global_history);
+			pcval=mask_input(global_mask, pc);
+			index = concat_input(gval, pcval, ghistoryBits);
+
+			prediction= global_history_table[index];
+			if(prediction>=2)
 			{
 				return TAKEN;
 			}
@@ -342,9 +375,17 @@ train_predictor(uint32_t pc, uint8_t outcome)
 		case GSELECT1:
 			gval=mask_input(global_mask, global_history);
 			pcval=mask_input(global_mask, pc);
-			index = concat_input(gval, pcval);
+			index = concat_input(gval, pcval, ghistoryBits);
 			//prediction= global_history_table[index];
 			update_if_non_saturate(outcome, global_history_table, index,1);
+			global_history = outcome | (global_history<<1);
+			return;
+		case GSELECT2:
+			gval=mask_input(global_mask, global_history);
+			pcval=mask_input(global_mask, pc);
+			index = concat_input(gval, pcval, ghistoryBits);
+			//prediction= global_history_table[index];
+			update_if_non_saturate(outcome, global_history_table, index,3);
 			global_history = outcome | (global_history<<1);
 			return;
 		case TOURNAMENT:
