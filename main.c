@@ -58,12 +58,18 @@ handle_option(char *arg)
   } else if (!strncmp(arg,"--gselect2:",11)) {
     bpType = GSELECT2;
     sscanf(arg+11,"%d", &ghistoryBits);
+  } else if (!strncmp(arg,"--gselect3:",11)) {
+    bpType = GSELECT3;
+    sscanf(arg+11,"%d", &ghistoryBits);
   } else if (!strncmp(arg,"--tournament:",13)) {
     bpType = TOURNAMENT;
     sscanf(arg+13,"%d:%d:%d", &ghistoryBits, &lhistoryBits, &pcIndexBits);
   } else if (!strncmp(arg,"--bimodal:",10)) {
     bpType = BIMODAL;
     sscanf(arg+10,"%d", &ghistoryBits);
+  } else if (!strncmp(arg,"--1bit:",7)) {
+    bpType = ONE_BIT;
+    sscanf(arg+7,"%d", &ghistoryBits);
   } else if (!strcmp(arg,"--custom")) {
     bpType = CUSTOM;
   } else if (!strcmp(arg,"--verbose")) {
